@@ -8,8 +8,9 @@ axum = { version = "0.8", default-features = false, features = ["tokio", "http1"
 bytes = "1.12.1"
 futures-util = "0.3.31"
 gif = "0.14"
-tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "time", "signal"] }
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "time", "signal", "process", "io-util"] }
 
 [dev-dependencies]
 http-body-util = "0.1.5"
+tempfile = "3"
 tower = { version = "0.5.3", features = ["util"] }

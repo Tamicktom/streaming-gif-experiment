@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Experiment 1 — Open-stream GIF</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="site-header">
+        <span class="site-kicker">Experiment 1</span>
+        <h1>Open-stream GIF</h1>
+        <p class="lede">
+          A 64×64 synthetic scene: black field, white block walking one pixel
+          per frame. The response stays open. The question is whether
+          <code>&lt;img&gt;</code> paints the first frame early and keeps
+          updating.
+        </p>
+        <nav class="site-nav" aria-label="Experiments">
+          <a id="link-home" href="/">Home</a>
+          <a id="link-experiment-1" href="/experiment-1" aria-current="page">Experiment 1</a>
+          <a id="link-experiment-2" href="/experiment-2">Experiment 2</a>
+        </nav>
+      </header>
+
+      <p>
+        Control for the rest of the lab. No video decode: the server draws
+        palette indices and writes GIF89a image blocks. On this machine the
+        open stream painted immediately and kept moving.
+      </p>
+
+      <div class="stage">
+        <div class="stage-frame">
+          <img
+            id="experiment-1-gif"
+            class="pixel"
+            width="64"
+            height="64"
+            alt="Live incremental GIF of a walking white block"
+          />
+        </div>
+        <div class="actions">
+          <button id="restart-experiment-1" type="button">Restart stream</button>
+          <a id="link-live-gif" href="/live.gif">Open /live.gif</a>
+        </div>
+      </div>
+    </div>
+    <script>
+      function assignExperiment1Src() {
+        document.getElementById("experiment-1-gif").src =
+          "/live.gif?t=" + Date.now();
+      }
+      window.addEventListener("load", assignExperiment1Src);
+      document
+        .getElementById("restart-experiment-1")
+        .addEventListener("click", assignExperiment1Src);
+    </script>
+  </body>
+</html>

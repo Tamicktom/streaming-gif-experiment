@@ -16,27 +16,31 @@ The experiment treats that as something to measure, not assume.
 
 ## What the server does
 
-Axum serves two routes on `127.0.0.1:3000`:
+Axum serves routes on `127.0.0.1:3000`:
 
 | Route | Role |
 |-------|------|
-| `/` | Page with `<img id="live-gif">`; `src` is assigned after `window.load` so an infinite stream does not block document completion |
-| `/live.gif` | Chunked `image/gif` body, `Cache-Control: no-store`, no `Content-Length` |
+| `/` | Hub: what the lab is, links to the experiments |
+| `/experiment-1` | Open-stream GIF — synthetic walking block via `<img>` (src assigned after `window.load`) |
+| `/experiment-2` | Video streamed as GIF — `static/example.mp4` decoded live into `/video.gif` |
+| `/live.gif` | Chunked `image/gif` from the **synthetic** walking-block scene (control) |
+| `/video.gif` | Chunked `image/gif` decoded live from `static/example.mp4` via ffmpeg |
 
-Two modules own the GIF, not the HTTP handler:
+Modules:
 
-- **`FrameGenerator`** — 64×64 synthetic scene: black background, 8×8 white block walking one pixel per frame.
-- **`GifStream`** — GIF89a header, infinite-loop extension, one complete frame per HTTP chunk, then a **trailer policy**.
+- **`FrameSource`** — sequential RGB24 producer (`SyntheticFrameSource`, `FfmpegFrameSource`, test `FixedFrameSource`)
+- **`GifStream`** — GIF89a header, infinite-loop extension, one complete frame per HTTP chunk, trailer policy
+- **`FfmpegFrameSource`** — spawns ffmpeg, reads raw RGB frames, kills the child on drop
 
 Trailer policy (env `GIF_TRAILER`):
 
 | Value | Behaviour |
 |-------|-----------|
-| `after:N` (default `after:10`) | Finite GIF: N frames, then trailer `0x3B` |
-| `never` | Open stream: frames forever, no trailer |
-| `ondrop` | Best-effort trailer when the body is dropped (not reliable on the wire yet) |
+| `after:N` | Finite GIF: N frames, then trailer `0x3B` (default for `/live.gif`: `after:10`) |
+| `never` | Open stream: frames forever, no trailer (EOF on a video source → `reset()` and loop) |
+| `ondrop` | Stream until source EOF (or drop), then trailer (default for `/video.gif`) |
 
-Frame interval is `GIF_INTERVAL_MS` (default `1000`). The GIF graphic-control delay is derived from the same interval so send rate and playback delay stay aligned.
+Frame interval: `GIF_INTERVAL_MS` (default `1000` for `/live.gif`, `100` for `/video.gif` to match 10 fps). Video path: `GIF_VIDEO_PATH` (default `static/example.mp4`).
 
 The `gif` crate always writes a trailer on `Drop`. Open-stream mode wraps the encoder in `ManuallyDrop` / `mem::forget` so that Drop never runs. “Flush” means **yield one HTTP chunk per frame**, not `Write::flush` on the encoder.
 
@@ -99,27 +103,34 @@ So: missing trailer is not “keep showing the last frame”; it is a decode fai
 ## How to run
 
 ```bash
-# Finite GIF (phase 1 default): 10 frames, then trailer
+# Finite synthetic GIF (phase 1 default): 10 frames, then trailer
 cargo run
 
-# Open stream (phases 2–4)
+# Open synthetic stream (phases 2–4)
 GIF_TRAILER=never cargo run
+# then open /live.gif (or use the control link on /)
+
+# Video → GIF open stream (lab 08)
+GIF_TRAILER=never cargo run
+# then open http://127.0.0.1:3000/experiment-2
 
 # Late trailer (phase 5 B)
 GIF_TRAILER=after:20 cargo run
 
-# Faster / slower send + GIF delay
+# Faster / slower send + GIF delay (applies to both routes)
 GIF_TRAILER=never GIF_INTERVAL_MS=100 cargo run
+
+# Custom video path
+GIF_VIDEO_PATH=/path/to/clip.mp4 GIF_TRAILER=never cargo run
 ```
 
-Open `http://127.0.0.1:3000/`. Inspect bytes without a decoder:
+Open `http://127.0.0.1:3000/` for the hub, `/experiment-1` for the walking block, `/experiment-2` for video. Inspect bytes without a decoder:
 
 ```bash
-curl -N -v http://127.0.0.1:3000/live.gif -o /tmp/live.gif
+curl -N -v http://127.0.0.1:3000/video.gif -o /tmp/video.gif
 # interrupt after a few seconds; header should be GIF89a
-# Never policy: last byte is not 0x3B
-xxd /tmp/live.gif | head
-file /tmp/live.gif
+xxd /tmp/video.gif | head
+file /tmp/video.gif
 ```
 
 Tests:
@@ -128,11 +139,11 @@ Tests:
 cargo test
 ```
 
-Lab notes: start at [`docs/lab/README.md`](docs/lab/README.md). Synthesis after all five phases is in [`docs/lab/RESULTS.md`](docs/lab/RESULTS.md).
+Lab notes: start at [`docs/lab/README.md`](docs/lab/README.md). Synthesis after phases 1–5 is in [`docs/lab/RESULTS.md`](docs/lab/RESULTS.md). Video follow-up: [`docs/lab/08-video-source.md`](docs/lab/08-video-source.md).
 
 ## Future experiments
 
-The v1 run isolated encoder + browser on localhost. The next interesting unknowns are **middleboxes** and **termination engineering**, not “does GIF stream at all”.
+The v1 run isolated encoder + browser on localhost. The next interesting unknowns are **middleboxes** and **termination engineering**, not “does GIF stream at all”. Video source (`/video.gif`) is the first follow-up after that baseline.
 
 **Worth doing next**
 

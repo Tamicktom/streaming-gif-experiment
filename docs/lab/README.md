@@ -20,6 +20,7 @@ Can a browser’s `<img>` decode and animate a GIF while the HTTP response is st
 | Phase 4 | [`06-timing.md`](06-timing.md) | Frame-interval sensitivity |
 | Phase 5 | [`07-termination.md`](07-termination.md) | Close without trailer, late trailer, reconnect |
 | Synthesis | [`RESULTS.md`](RESULTS.md) | Fill only after phases 1–5 |
+| Follow-up | [`08-video-source.md`](08-video-source.md) | MP4 → incremental GIF (`/video.gif`) |
 
 ```mermaid
 flowchart TD
@@ -33,6 +34,7 @@ flowchart TD
   timing[06-timing.md]
   term[07-termination.md]
   results[RESULTS.md]
+  video[08-video-source.md]
 
   experiment --> index
   index --> env
@@ -43,6 +45,7 @@ flowchart TD
   clients --> timing
   timing --> term
   term --> results
+  results --> video
 ```
 
 ## What decides vs what only records
@@ -52,6 +55,7 @@ flowchart TD
 | `01-environment.md` | Tooling and “no proxy” rule | Checklist that the machine is ready |
 | `02-architecture.md` | Module seams, stack, HTTP invariants | — (design note; implement later) |
 | `03`–`07` | Protocol for that phase only | Observation tables |
+| `08-video-source.md` | Downsample defaults for MP4 → GIF | Observation table for video source |
 | `RESULTS.md` | Whether to pursue a manual encoder | Confirmed/refuted hypothesis, best scenario |
 
 ## Gate rules

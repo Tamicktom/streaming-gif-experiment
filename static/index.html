@@ -2,18 +2,78 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Streaming GIF experiment</title>
+    <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <h1>Streaming GIF experiment</h1>
-    <p>Live incremental GIF via <code>&lt;img&gt;</code> (src set after page load so an open stream does not block document completion).</p>
-    <img id="live-gif" alt="Live incremental GIF stream" width="256" height="256" />
-    <script>
-      // Never-policy /live.gif never ends; assigning src in HTML keeps document.readyState
-      // from reaching "complete" and breaks tooling that waits for window load.
-      window.addEventListener("load", function () {
-        document.getElementById("live-gif").src = "/live.gif";
-      });
-    </script>
+    <div class="wrap">
+      <header class="site-header">
+        <span class="site-kicker">Lab</span>
+        <h1>Streaming GIF experiment</h1>
+        <p class="lede">
+          GIF is a file format, not a streaming protocol. This lab asks whether a
+          browser <code>&lt;img&gt;</code> can decode and animate a GIF
+          <strong>while the HTTP response is still open</strong> and new frames
+          keep arriving.
+        </p>
+        <nav class="site-nav" aria-label="Experiments">
+          <a id="link-home" href="/" aria-current="page">Home</a>
+          <a id="link-experiment-1" href="/experiment-1">Experiment 1</a>
+          <a id="link-experiment-2" href="/experiment-2">Experiment 2</a>
+        </nav>
+      </header>
+
+      <h2>Why this exists</h2>
+      <p>
+        After the GIF89a header and colour table, each frame is a self-contained
+        block. In principle a decoder can paint the first frame and keep
+        appending later ones before the trailer byte <code>0x3B</code> arrives.
+        Real browsers, HTTP buffering, and image decoders may not play along.
+      </p>
+      <p>
+        The server starts a valid GIF, then sends one complete frame per chunked
+        HTTP/1.1 body piece. Trailer policy and frame interval are knobs, not
+        assumptions.
+      </p>
+
+      <h2>Experiments</h2>
+      <div class="cards">
+        <a id="card-experiment-1" class="card" href="/experiment-1">
+          <span class="kicker">Experiment 1</span>
+          <strong>Open-stream GIF</strong>
+          <p>
+            Synthetic 64×64 walking block. Control: does
+            <code>&lt;img&gt;</code> paint live without a finished file?
+          </p>
+        </a>
+        <a id="card-experiment-2" class="card" href="/experiment-2">
+          <span class="kicker">Experiment 2</span>
+          <strong>Video streamed as GIF</strong>
+          <p>
+            Decode an MP4 on the server, quantize to a 64-colour cube, and push
+            frames as an incremental GIF.
+          </p>
+        </a>
+      </div>
+
+      <h2>Raw streams</h2>
+      <ul>
+        <li>
+          <a id="link-live-gif" href="/live.gif"><code>/live.gif</code></a>
+          — synthetic scene
+        </li>
+        <li>
+          <a id="link-video-gif" href="/video.gif"><code>/video.gif</code></a>
+          — MP4 → GIF
+        </li>
+      </ul>
+      <p class="note">
+        Pages assign <code>src</code> after <code>window.load</code> so an
+        infinite stream does not block document completion. Putting the GIF URL
+        in the HTML <code>src</code> would keep <code>document</code> from
+        reaching <code>load</code>.
+      </p>
+    </div>
   </body>
 </html>

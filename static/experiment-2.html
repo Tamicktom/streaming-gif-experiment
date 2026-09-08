@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Experiment 2 — Video streamed as GIF</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="site-header">
+        <span class="site-kicker">Experiment 2</span>
+        <h1>Video streamed as GIF</h1>
+        <p class="lede">
+          Same incremental GIF mechanism, but frames come from
+          <code>static/example.mp4</code>: hardware-decode and scale, then a
+          64-colour cube, then GIF image blocks on a chunked response.
+        </p>
+        <nav class="site-nav" aria-label="Experiments">
+          <a id="link-home" href="/">Home</a>
+          <a id="link-experiment-1" href="/experiment-1">Experiment 1</a>
+          <a id="link-experiment-2" href="/experiment-2" aria-current="page">Experiment 2</a>
+        </nav>
+      </header>
+
+      <p>
+        Follow-up to experiment 1. The independent variable is the frame
+        source: real video instead of the walking block. The GIF is still not a
+        finished file while you watch it.
+      </p>
+
+      <div class="stage">
+        <div class="stage-frame">
+          <img
+            id="experiment-2-gif"
+            width="1080"
+            height="456"
+            alt="Live incremental GIF decoded from example.mp4"
+          />
+        </div>
+        <div class="actions">
+          <button id="restart-experiment-2" type="button">Restart stream</button>
+          <a id="link-video-gif" href="/video.gif">Open /video.gif</a>
+        </div>
+      </div>
+    </div>
+    <script>
+      function assignExperiment2Src() {
+        document.getElementById("experiment-2-gif").src =
+          "/video.gif?t=" + Date.now();
+      }
+      window.addEventListener("load", assignExperiment2Src);
+      document
+        .getElementById("restart-experiment-2")
+        .addEventListener("click", assignExperiment2Src);
+    </script>
+  </body>
+</html>
