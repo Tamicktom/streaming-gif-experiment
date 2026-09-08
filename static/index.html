@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Streaming GIF experiment</title>
+  </head>
+  <body>
+    <h1>Streaming GIF experiment</h1>
+    <p>Live incremental GIF via <code>&lt;img&gt;</code> (src set after page load so an open stream does not block document completion).</p>
+    <img id="live-gif" alt="Live incremental GIF stream" width="256" height="256" />
+    <script>
+      // Never-policy /live.gif never ends; assigning src in HTML keeps document.readyState
+      // from reaching "complete" and breaks tooling that waits for window load.
+      window.addEventListener("load", function () {
+        document.getElementById("live-gif").src = "/live.gif";
+      });
+    </script>
+  </body>
+</html>
